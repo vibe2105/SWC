@@ -1,0 +1,98 @@
+from webexteamssdk import WebexTeamsAPI
+api = None
+
+def enter_webex_token():
+    global api
+    webex_token = input("Enter your Webex token: ")
+    try:
+        api = WebexTeamsAPI(access_token=webex_token)
+        print("Connected to Webex successfully.")
+    except Exception as e:
+        print(f"Connection failed: {e}")
+
+def display_menu():
+    print("Main Menu:")
+    print("1: Test Connection")
+    print("2: Display User Information")
+    print("3: List Rooms")
+    print("4: Create a Room")
+    print("5: Send Message to a Room")
+    print("6: Exit")
+
+def test_connection():
+    try:
+        me = api.people.me()
+        print(f"Connection successful. Your Displayed Name: {me.displayName}")
+    except Exception as e:
+        print(f"Connection failed: {e}")
+
+def display_user_info():
+    try:
+        me = api.people.me()
+        print("User Information:")
+        print(f"Displayed Name: {me.displayName}")
+        print(f"Nickname: {me.nickName}")
+        print(f"Emails: {', '.join(me.emails)}")
+    except Exception as e:
+        print(f"Failed to retrieve user information: {e}")
+
+def list_rooms():
+    try:
+        rooms = list(api.rooms.list())
+        print("List of Rooms:")
+        for room in rooms:
+            print(f"Room ID: {room.id}")
+            print(f"Room Title: {room.title}")
+            print(f"Date Created: {room.created}")
+            print(f"Last Activity: {room.lastActivity}")
+            print()
+    except Exception as e:
+        print(f"Failed to retrieve room information: {e}")
+
+def create_room():
+    room_title = input("Enter the title of the room: ")
+    try:
+        room = api.rooms.create(room_title)
+        print(f"Room '{room.title}' created successfully with ID: {room.id}")
+    except Exception as e:
+        print(f"Failed to create the room: {e}")
+
+def send_message():
+    rooms = list(api.rooms.list())
+    print("Select a room to send a message:")
+    for i, room in enumerate(rooms):
+        print(f"{i + 1}: {room.title}")
+    room_choice = int(input("Enter the room number: ")) - 1
+
+    if 0 <= room_choice < len(rooms):
+        message = input("Enter your message: ")
+        try:
+            api.messages.create(roomId=rooms[room_choice].id, text=message)
+            print("Message sent successfully.")
+        except Exception as e:
+            print(f"Failed to send the message: {e}")
+    else:
+        print("Invalid room choice.")
+
+while True:
+    if api is None:
+        enter_webex_token()
+    else:
+        display_menu()
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            test_connection()
+        elif choice == '2':
+            display_user_info()
+        elif choice == '3':
+            list_rooms()
+        elif choice == '4':
+            create_room()
+        elif choice == '5':
+            send_message()
+        elif choice == '6':
+            print("Exiting the program. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter a valid option.")
